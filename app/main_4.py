@@ -35,9 +35,13 @@ app.include_router(user.router)
 app.include_router(auth.router)
 app.include_router(vote.router) 
 
+# this message will be displayed when we send a request to localhost port 8000
 @app.get("/")
 def root():
     return {"message": "Hello workkkkk"}
+
+
+
 
 
 
