@@ -1,0 +1,105 @@
+
+# docker-compose for our development environment
+# version of our compose
+version: "3"
+
+# our services (containers)
+services:
+  api:
+    # build an image from our App using our Dockerfile in this directory
+    build: .
+
+    # we specify to run postgres before running api containers
+    depends_on:
+      - postgres
+    ports:
+      # < port on local host>:<port on container> 
+      - 4000:4000
+    # "bind mount": sny our local folder("./") and app folder("/usr/src/app") in container to track the changes we make. "ro" means read only (security)
+    volumes:
+      - ./:/usr/src/app:ro
+
+    # override the commands in dockerfile
+    command: sh -c "uvicorn app.main_4:app --host 0.0.0.0 --port 4000 --reload && alembic upgrade head"
+    #command: bash -c "alembic upgrade head && uvicorn app.main_4:app --host 0.0.0.0 --port 4000 --reload"
+    #command: uvicorn app.main_4:app --host 0.0.0.0 --port 4000 --reload
+
+    # reading the environments variables
+    #env_file:
+      #- ./.env
+    # or we use the env. var. as hard code like bellow
+    # for networking between our services in the container we can use the name of the services
+    # like domain name insted of ip address. donw we connenct our api to db container by adding 
+    # the postgres service to database_hostname (its previous val: localhost)
+    environment:
+      - DATABASE_HOSTNAME=postgres
+      - DATABASE_PORT=5432
+      - DATABASE_PASSWORD=root
+      - DATABASE_NAME=fastapi
+      - DATABASE_USERNAME=postgres
+      - SECRET_KEY=09d25e094faa6ca2556c818166b7a9563b93f7099f6f0f4caa6cf63b88e8d3e7
+      - ALGORITHM=HS256
+      - ACCESS_TOKEN_EXPIRE_MINUTES=30
+
+
+  
+  postgres:
+    image: postgres
+    restart: always
+    # saving the datas (from: /var/lib/postgres/data) to our volum directory (postgres-db)
+    # volumes:
+    #   - ./data/pg-db:/var/lib/postgres/data 
+
+    environment:
+      - POSTGRES_USER:postgres
+      - POSTGRES_PASSWORD=root
+      - POSTGRES_DB=fastapi
+
+    ports:
+      - "5433:5432" 
+
+    volumes:
+      - postgres-db:/var/lib/postgres/data 
+
+         
+    #networks:
+      #app_net:
+        #ipv4_address: 192.168.0.2
+        
+
+
+  pgadmin:
+    image: dpage/pgadmin4
+    restart: always
+    # saving the datas (from: /var/lib/postgres/data) to our volum directory (postgres-db)
+    volumes:
+      - pgadmin:/root/.pgadmin 
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=pgadmin4@pgadmin.org
+      - PGADMIN_DEFAULT_PASSWORD=admin
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres  
+
+  
+    #networks:
+      #app_net:
+        #ipv4_address: 192.168.0.3 
+     
+  
+
+# to save the our database datas to our local machine to prevent missing them after the container goes down
+volumes:
+  postgres-db: 
+  pgadmin:
+     
+
+
+# networks:
+#   app_net: 
+#     ipam: 
+#       driver: default
+#       config: 
+#         - subnet: "192.168.0.0/24"
+#           gateway: 192.168.0.1

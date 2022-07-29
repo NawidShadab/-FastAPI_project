@@ -17,7 +17,18 @@ router = APIRouter(
 
 # login users
 @router.post("/", status_code=status.HTTP_201_CREATED, response_model= schemas.UserOut)
-def creat_users(user: schemas.UserCreate, db: Session = Depends(get_db)):
+def create_users(user: schemas.UserCreate, db: Session = Depends(get_db)):
+    
+    # cheking if the entered email already exists
+    user_email = user.email
+    user_email_db = db.query(models.User).filter(models.User.email == user_email).first()
+    #print("+++++++++++++++++ user:", user_email)
+    #print("+++++++++++++++++ user:", user_email_db)
+    if user_email_db:
+        raise HTTPException(status_code= status.HTTP_422_UNPROCESSABLE_ENTITY, 
+                            detail=f"User with email: {user_email} already exist")
+    
+    
     
     # hash the password - user.password
     hashed_password = utils.hash(user.password)

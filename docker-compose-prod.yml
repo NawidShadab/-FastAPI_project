@@ -1,0 +1,96 @@
+# docker-copmsore for production environment
+# version of our compose
+version: "3"
+
+# our services (containers)
+services:
+  api:
+    # for production environment we pull the image from docker hub repository we dont need to build it 
+    image: nawidshadab/fastapi-proj
+
+    # we specify to run postgres before running api containers
+    depends_on:
+      - postgres
+    ports:
+      # < port on local host>:<port on container> 
+      - 80:8000
+
+    # override the commands in dockerfile
+    #command: uvicorn app.main_4:app --host 0.0.0.0 --port 4000 
+
+    # reading the environments variables
+    #env_file:
+      #- ./.env
+    # or we use the env. var. as hard code like bellow. for production environment we read the environment variables from host machine. so we change it as:
+    environment:
+      - DATABASE_HOSTNAME=${DATABASE_HOSTNAME}
+      - DATABASE_PORT=${DATABASE_PORT}
+      - DATABASE_PASSWORD=${DATABASE_PASSWORD}
+      - DATABASE_NAME=${DATABASE_NAME}
+      - DATABASE_USERNAME=${DATABASE_USERNAME}
+      - SECRET_KEY=${SECRET_KEY}
+      - ALGORITHM=${ALGORITHM}
+      - ACCESS_TOKEN_EXPIRE_MINUTES=${ACCESS_TOKEN_EXPIRE_MINUTES}
+
+
+  
+  postgres:
+    image: postgres
+    restart: always
+    # saving the datas (from: /var/lib/postgres/data) to our volum directory (postgres-db)
+    # volumes:
+    #   - ./data/pg-db:/var/lib/postgres/data 
+
+    environment:
+      - POSTGRES_USER:${DATABASE_USERNAME}
+      - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
+      - POSTGRES_DB=${DATABASE_NAME}
+
+    ports:
+      - "5433:5432" 
+
+    volumes:
+      - postgres-db:/var/lib/postgres/data 
+
+         
+    #networks:
+      #app_net:
+        #ipv4_address: 192.168.0.2
+        
+
+
+  pgadmin:
+    image: dpage/pgadmin4
+    restart: always
+    # saving the datas (from: /var/lib/postgres/data) to our volum directory (postgres-db)
+    volumes:
+      - pgadmin:/root/.pgadmin 
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=pgadmin4@pgadmin.org
+      - PGADMIN_DEFAULT_PASSWORD=admin
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres  
+
+  
+    #networks:
+      #app_net:
+        #ipv4_address: 192.168.0.3 
+     
+  
+
+# to save the our database datas to our local machine to prevent missing them after the container goes down
+volumes:
+  postgres-db: 
+  pgadmin:
+     
+
+
+# networks:
+#   app_net: 
+#     ipam: 
+#       driver: default
+#       config: 
+#         - subnet: "192.168.0.0/24"
+#           gateway: 192.168.0.1
