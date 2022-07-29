@@ -4,6 +4,8 @@ venv/
 .env3
 no_need_righ_now_files
 fast_api_env
-./tests/database.py
-./tests/test_calculations.py
-
+/tests/database.py
+tests/test_calculations.py
+.DS_Store
+docker-compose-dev.yml
+/tests/__pycache__
