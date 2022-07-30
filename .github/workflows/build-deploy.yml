@@ -4,7 +4,8 @@ name: Build and deploy code
 on: [push, pull_request]
 
 jobs: 
-  job1:
+  # build job runs the continuous integration (CI) part 
+  build:
     # the "testing" environment we made in github
     environment: 
       name: testing
@@ -20,7 +21,7 @@ jobs:
       ALGORITHM: ${{secrets.ALGORITHM}}
       ACCESS_TOKEN_EXPIRE_MINUTES: ${{secrets.ACCESS_TOKEN_EXPIRE_MINUTES}}
 
-    # Service containers to run with `job1`
+    # Service containers to run with `build`
     services:
       # Label used to access the service container
       postgres:
@@ -59,22 +60,46 @@ jobs:
           pip install pytest
           pytest
 
-      - name: Login to Docker Hub
-        uses: docker/login-action@v1
-        with:
-          username: ${{ secrets.DOCKER_HUB_USERNAME }}
-          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+      # active here if you use docker 
+      # - name: Login to Docker Hub
+      #   uses: docker/login-action@v1
+      #   with:
+      #     username: ${{ secrets.DOCKER_HUB_USERNAME }}
+      #     password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
       
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
+      # - name: Set up Docker Buildx
+      #   uses: docker/setup-buildx-action@v1
 
-      - name: Build and push
-        uses: docker/build-push-action@v2
+      # - name: Build and push
+      #   uses: docker/build-push-action@v2
+      #   with:
+      #     context: ./
+      #     file: ./Dockerfile
+      #     builder: ${{ steps.buildx.outputs.name }}
+      #     push: true
+      #     tags: ${{ secrets.DOCKER_HUB_USERNAME }}/fastapi_proj:latest # here we add our rep name in docker hub
+      #     cache-from: type=registry,ref=${{ secrets.DOCKER_HUB_USERNAME }}/simplewhale:buildcache
+      #     cache-to: type=registry,ref=${{ secrets.DOCKER_HUB_USERNAME }}/simplewhale:buildcache,mode=max    
+
+
+  # deploy job is running the continuous deployment (CD) part here we deploy in heroku
+  # note: as far as the jobs are runing parelow so we need to 
+  # config the deploy job to wait for build job then runs using needs:[list of all other jobs]
+  deploy:
+    runs-on: ubuntu-latest
+    needs: [build]
+    # the "production" environment we made in github
+    environment: 
+      name: production
+
+    steps:
+      - name: pulling git repo
+        uses: actions/checkout@v3
+
+      - name: deploying to Heroku
+        uses: akhileshns/heroku-deploy@v3.12.12 # This is the action
         with:
-          context: ./
-          file: ./Dockerfile
-          builder: ${{ steps.buildx.outputs.name }}
-          push: true
-          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/fastapi_proj:latest # here we add our rep name in docker hub
-          cache-from: type=registry,ref=${{ secrets.DOCKER_HUB_USERNAME }}/simplewhale:buildcache
-          cache-to: type=registry,ref=${{ secrets.DOCKER_HUB_USERNAME }}/simplewhale:buildcache,mode=max    
+          heroku_api_key: ${{secrets.HEROKU_API_KEY}}
+          heroku_app_name: ${{secrets.HEROKU_APP_NAME}} #Must be unique in Heroku
+          heroku_email: ${{secrets.HEROKU_EMAIL}}
+

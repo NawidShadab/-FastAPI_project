@@ -39,7 +39,7 @@ app.include_router(vote.router)
 # git test comment
 @app.get("/")
 def root():
-    return {"message": "Hello workkkkk!"}
+    return {"message": "Hello workkkkk! successfully deployed from CI/CD pipeline"}
 
 
 
