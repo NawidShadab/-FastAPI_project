@@ -8,4 +8,3 @@ fast_api_env
 tests/test_calculations.py
 .DS_Store
 docker-compose-dev.yml
-/tests/__pycache__
