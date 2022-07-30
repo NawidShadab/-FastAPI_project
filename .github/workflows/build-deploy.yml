@@ -1,10 +1,29 @@
 name: Build and deploy code
 
+# run jobs by pull and push command
 on: [push, pull_request]
 
 jobs: 
-  job1: 
+  job1:
+    # the "testing" environment we made in github
+    environment: 
+      name: testing
+
+    # our environment variables, we defined them by using the "add Secret" of github Environment 
+    env: 
+      DATABASE_HOSTNAME: ${{secrets.DATABASE_HOSTNAME}}
+      DATABASE_PORT: ${{secrets.DATABASE_PORT}}
+      DATABASE_PASSWORD: ${{secrets.DATABASE_PASSWORD}}
+      DATABASE_NAME: ${{secrets.DATABASE_NAME}}
+      DATABASE_USERNAME: ${{secrets.DATABASE_USERNAME}}
+      SECRET_KEY: ${{secrets.SECRET_KEY}}
+      ALGORITHM: ${{secrets.ALGORITHM}}
+      ACCESS_TOKEN_EXPIRE_MINUTES: ${{secrets.ACCESS_TOKEN_EXPIRE_MINUTES}}
+
+    # we us ubunto OS for VM to run 
     runs-on: ubuntu-latest
+
+    # here we defince after installing our OS what commands should runs step by step
     steps: 
       - name: pulling git repo
         uses: actions/checkout@v3
