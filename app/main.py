@@ -11,7 +11,7 @@ from .routers import post, user, auth, vote
 from .config import settings
 
 # as far as we now use alembic to create and updates our tables we can commnet this 
-models.Base.metadata.create_all(bind=engine)
+#models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
