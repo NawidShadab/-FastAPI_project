@@ -5,16 +5,11 @@ from jose import jwt
 from app.config import settings
 
 
-
-
-
-
-
-# testing root path
-def test_root(client):
-    res = client.get("/")
-    assert res.json().get('message') == 'Hello workkkkk!'
-    assert res.status_code == 200
+# # testing root path
+# def test_root(client):
+#     res = client.get("/")
+#     assert res.json().get('message') == 'Hello workkkkk!'
+#     assert res.status_code == 200
     
 
 # testing create user: sending the user info through the body of the request as json
